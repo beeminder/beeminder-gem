@@ -1,12 +1,12 @@
-# Beeminder::Gem
+# Beeminder
 
-TODO: Write a gem description
+Convenient access to [Beeminder]()'s API.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'beeminder-gem'
+    gem 'beeminder'
 
 And then execute:
 
@@ -18,12 +18,24 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+First, get your token [here]() and log in:
 
-## Contributing
+    bee = Beeminder::User.new "username", "token"
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+Now you can do a bunch of stuff. You'll probably want to send a new datapoint:
+
+    bee.send "weight", 86.3
+
+Or you can find all goals of a certain type:
+
+    odometer_goals = bee.goals.select {|g| g.goal_type = :biker}
+
+Or maybe show the last updated graph in a widget somewhere:
+
+   puts bee.goals.max_by(:updated_at).graph_url
+
+There's also a simple tool called `beemind` to update graphs:
+
+   $ beemind pushups 4
+
+Check the [gem doc]() and [API]() for what else you can do.

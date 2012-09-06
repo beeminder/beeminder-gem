@@ -1,0 +1,5 @@
+* TODO [1/4]
+- [X] document code
+- [ ] handle oauth tokens?
+- [ ] beemind binary
+- [ ] implement actual API calls
