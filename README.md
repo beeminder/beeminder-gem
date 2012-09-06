@@ -38,10 +38,10 @@ Or you can find all goals of a certain type:
 
 Or maybe show the last updated graph in a widget somewhere:
 
-   puts bee.goals.max_by(:updated_at).graph_url
+    puts bee.goals.max_by(:updated_at).graph_url
 
 There's also a simple tool called `beemind` to update graphs:
 
-   $ beemind pushups 4
+    $ beemind pushups 4
 
 Check the [gem doc](http://rubydoc.info/github/beeminder/beeminder-gem/master/frames) and [API](https://www.beeminder.com/api-docs) for what else you can do.
