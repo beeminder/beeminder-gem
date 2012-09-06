@@ -1,6 +1,6 @@
 # Beeminder
 
-Convenient access to [Beeminder]()'s API.
+Convenient access to [Beeminder](http://www.beeminder.com)'s API.
 
 ## Installation
 
@@ -18,17 +18,23 @@ Or install it yourself as:
 
 ## Usage
 
-First, get your token [here]() and log in:
+First, get your token [here](https://www.beeminder.com/api/v1/auth_token.json) and log in:
 
     bee = Beeminder::User.new "username", "token"
 
 Now you can do a bunch of stuff. You'll probably want to send a new datapoint:
 
+    # short form
     bee.send "weight", 86.3
+
+    # long form
+    goal = bee.goal "weight"
+    dp = Beeminder::Datapoint.new :value => 86.3, :comment => "I loves cheeseburgers :3"
+    goal.add dp
 
 Or you can find all goals of a certain type:
 
-    odometer_goals = bee.goals.select {|g| g.goal_type = :biker}
+    odometer_goals = bee.goals.select {|g| g.goal_type == :biker}
 
 Or maybe show the last updated graph in a widget somewhere:
 
@@ -38,4 +44,4 @@ There's also a simple tool called `beemind` to update graphs:
 
    $ beemind pushups 4
 
-Check the [gem doc]() and [API]() for what else you can do.
+Check the [gem doc]() and [API](https://www.beeminder.com/api-docs) for what else you can do.

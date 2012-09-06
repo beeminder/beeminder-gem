@@ -20,7 +20,7 @@ module Beeminder
 
       info = get "users/#{@name}.json"
       
-      @timezone   = info["Timezone"]
+      @timezone   = info["timezone"]
       @updated_at = DateTime.strptime(info["updated_at"].to_s, '%s')
     end
 
@@ -39,8 +39,30 @@ module Beeminder
       goals || []
     end
 
+    # Return specific goal.
+    #
+    # @param name [String] Name of the goal.
+    # @return [Beeminder::Goal] Returns goal.
+    def goal name
+      Beeminder::Goal.new self, name
+    end
+
+    # Convenience function to add datapoint to a goal.
+    #
+    # @param name [String] Goal name.
+    # @param value [Numeric] Datapoint value.
+    # @param comment [String] Optional comment.
+    def send name, value, comment=""
+      goal = self.goal name
+      dp = Beeminder::Datapoint.new value: value, comment: comment
+      goal.add dp
+    end
+    
     # Create new goal.
-    def create_goal
+    #
+    # @param opts [Hash] Goal options.
+    def create_goal opts={}
+      post "users/#{@name}/goals.json", opts
     end
 
     # Send GET request to API.
@@ -59,6 +81,22 @@ module Beeminder
       _connection :post, cmd, data
     end
 
+    # Send DELETE request to API.
+    #
+    # @param cmd [String] the API command, like `users/#{user.name}.json`
+    # @param data [Hash] data to send; auth_token is included by default (optional)
+    def delete cmd, data={}
+      _connection :delete, cmd, data
+    end
+
+    # Send PUT request to API.
+    #
+    # @param cmd [String] the API command, like `users/#{user.name}.json`
+    # @param data [Hash] data to send; auth_token is included by default (optional)
+    def put cmd, data={}
+      _connection :put, cmd, data
+    end
+
     private
 
     # Establish HTTPS connection to API.
@@ -75,13 +113,18 @@ module Beeminder
       http.start do |http|
         req = case type
               when :post
-                req = Net::HTTP::Post.new(url.path)
+                Net::HTTP::Post.new(url.path)
               when :get
-                req = Net::HTTP::Get.new(url.path)
+                Net::HTTP::Get.new(url.path)
+              when :delete
+                Net::HTTP::Delete.new(url.path)
+              when :put
+                Net::HTTP::Put.new(url.path)
               else
                 raise "invalid connection type"
               end
         req.set_form_data(data)
+        
         res = http.request(req)
         if not res.is_a? Net::HTTPSuccess
           raise "request failed: #{res.body}"

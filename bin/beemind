@@ -33,5 +33,11 @@ yaml = YAML.load File.open(config)
 # login
 bee = Beeminder::User.new yaml["account"], yaml["token"]
 
-# show goals
-# p bee.goals
+if not (2..3).include? ARGV.size
+  puts "usage: beemind goal value [comment]"
+  exit 1
+end
+
+goal, value, comment = ARGV
+
+bee.send goal, value, comment || ""

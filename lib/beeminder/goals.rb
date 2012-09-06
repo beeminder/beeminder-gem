@@ -81,22 +81,51 @@ module Beeminder
     #
     # @return [Array<Beeminder::Datapoint>] returns list of datapoints
     def datapoints
-      info = @user.get "users/#{@user.name}/goals/#{slug}.json", "datapoints" => true
-      datapoints = info["datapoints"].map{|d| Datapoint.new d}
+      info = @user.get "users/#{@user.name}/goals/#{slug}/datapoints.json"
+      datapoints = info.map{|d| Datapoint.new d}
 
       datapoints
     end
 
-    # Send updated info to Beeminder.
+    # Send updated meta-data to Beeminder.
     def update
+      data = {
+        "slug"       => @slug,
+        "title"      => @title,
+        "ephem"      => @ephem || false,
+        "panic"      => @panic || 86400,
+        "secret"     => @secret || false,
+        "datapublic" => @datapublic || false,
+      }
+
+      @user.put "users/#{@user.name}/goals/#{@slug}.json", data
     end
 
+    # Send new road setting to Beeminder.
+    #
+    # @param dials [Hash] Set exactly two of `"rate"`, `"goaldate"` and `"goalval"`. The third is implied.
+    def dial_road dials={}
+      raise "Set exactly two dials." if dials.keys.size != 2
+
+      dials["goaldate"] = dials["goaldate"].strftime('%s') unless dials["goaldate"].nil?
+
+      @user.post "users/#{@user.name}/goals/#{@slug}/dial_road.json", dials
+    end
+    
     # Add one or more datapoints to the goal.
     #
     # @param datapoints [Beeminder::Datapoint, Array<Beeminder::Datapoint>] one or more datapoints to add to goal
     def add datapoints, opts={}
-      opts = {:sendmail => false}.merge(opts)
       datapoints = [*datapoints]
+
+      # FIXME create_all doesn't work because Ruby's POST encoding of arrays is broken.
+      datapoints.each do |dp|
+        data = {
+          "sendmail"   => opts[:sendmail] || false
+        }.merge(dp.to_hash)
+
+        @user.post "users/#{@user.name}/goals/#{@slug}/datapoints.json", data
+      end
     end
 
     # Delete one or more datapoints from the goal.
@@ -104,7 +133,23 @@ module Beeminder
     # @param datapoints [Beeminder::Datapoint, Array<Beeminder::Datapoint>] one or more datapoints to delete
     def delete datapoints
       datapoints = [*datapoints]
-      datapoints.each{|d| d.delete}
+      datapoints.each do |dp|
+        @user.delete "/users/#{@user.name}/goals/#{@slug}/datapoints/#{dp.id}.json"
+      end
+    end
+
+    # Convert datapoint to hash for POSTing.
+    # @return [Hash]
+    def to_hash
+      {
+        "slug"       => @slug,
+        "title"      => @title,
+        "goal_type"  => @goal_type.to_s,
+        "ephem"      => @ephem || false,
+        "panic"      => @panic || 86400,
+        "secret"     => @secret || false,
+        "datapublic" => @datapublic || false,
+      }
     end
   end
 
@@ -125,6 +170,11 @@ module Beeminder
     attr_reader :updated_at
 
     def initialize info
+      default = {
+        timestamp: DateTime.now.strftime('%s')
+      }
+      info = default.merge(info)
+      
       # set variables
       info.each do |k,v|
         instance_variable_set "@#{k}", v
@@ -132,18 +182,17 @@ module Beeminder
 
       # some conversions
       @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s')
-      @updated_at = DateTime.strptime(@updated_at.to_s, '%s')
+      @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
     end
 
-    # Send updated info to Beeminder.
-    def update
-      
-      # update
-      @updated_at = DateTime.strptime(ret["updated_at"].to_s, '%s')
-    end
-
-    # Delete datapoint.
-    def delete
+    # Convert datapoint to hash for POSTing.
+    # @return [Hash]
+    def to_hash
+      {
+        "timestamp" => @timestamp.strftime('%s'),
+        "value"     => @value || 0,
+        "comment"   => @comment || "",
+      }
     end
   end
 end

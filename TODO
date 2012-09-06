@@ -1,5 +1,6 @@
-* TODO [1/4]
+* TODO [3/5]
 - [X] document code
 - [ ] handle oauth tokens?
-- [ ] beemind binary
-- [ ] implement actual API calls
+- [X] beemind binary
+- [X] implement actual API calls
+- [ ] add a few more sanity checks
