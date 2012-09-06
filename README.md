@@ -44,4 +44,4 @@ There's also a simple tool called `beemind` to update graphs:
 
     $ beemind pushups 4
 
-Check the [gem doc](http://rubydoc.info/github/beeminder/beeminder-gem/master/frames) and [API](https://www.beeminder.com/api-docs) for what else you can do.
+Check the [gem doc](http://rubydoc.info/gems/beeminder/frames) and [API](https://www.beeminder.com/api-docs) for what else you can do.
