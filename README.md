@@ -38,7 +38,7 @@ Or you can find all goals of a certain type:
 
 Or maybe show the last updated graph in a widget somewhere:
 
-    puts bee.goals.max_by(:updated_at).graph_url
+    puts bee.goals.max_by{|g| g.updated_at}.graph_url
 
 There's also a simple tool called `beemind` to update graphs:
 
