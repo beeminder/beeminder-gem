@@ -169,7 +169,7 @@ module Beeminder
     # @return [DateTime] The time that this datapoint was entered or last updated.
     attr_reader :updated_at
 
-    def initialize info
+    def initialize info={}
       default = {
         timestamp: DateTime.now.strftime('%s')
       }
