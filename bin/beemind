@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
+require 'highline/import'
+require 'trollop'
 require 'yaml'
 
 # load library
@@ -14,30 +16,42 @@ else
   require 'beeminder'
 end
 
-config = "#{Dir.home}/.beeminderrc"
-if not File.exists? config
+usage = "usage: beemind goal value [comment]"
+opts = Trollop::options do
+  banner usage
+
+  opt :config, "Path to config.", :type => :string, :default => "~/.beeminderrc"
+  opt :list,   "List all available goals."
+end
+
+Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
+goal, value, comment = ARGV unless opts[:list]
+
+opts[:config] = File.expand_path opts[:config]
+
+if not File.exists? opts[:config]
   # create config
-  require 'highline/import'
-  yaml = {
+  auth = {
     "account" => ask("Beeminder account:"),
     "token"   => ask("Auth token:")
   }
-  File.open(config, "w+") {|f| YAML.dump yaml, f}
-  File.chmod 0600, config
-  puts "Written config to '#{config}.'"
+  File.open(opts[:config], "w+") {|f| YAML.dump yaml, f}
+  File.chmod 0600, opts[:config]
+  puts "Written config to '#{opts[:config]}.'"
 end
 
 # load config
-yaml = YAML.load File.open(config)
+auth = YAML.load File.open(opts[:config])
 
 # login
-bee = Beeminder::User.new yaml["account"], yaml["token"]
+bee = Beeminder::User.new auth["account"], auth["token"]
 
-if not (2..3).include? ARGV.size
-  puts "usage: beemind goal value [comment]"
-  exit 1
+if opts[:list]
+  # list all available goals
+  puts "available goals:"
+  goals = bee.goals.sort_by{|g| g.slug}.each do |goal|
+    puts "  #{goal.slug} (#{goal.title})"
+  end
+else
+  bee.send goal, value, comment || ""
 end
-
-goal, value, comment = ARGV
-
-bee.send goal, value, comment || ""
