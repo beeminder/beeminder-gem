@@ -51,19 +51,15 @@ module Beeminder
     # @return [true|false] Whether you have to be signed in as the owner of the goal to view the datapoints.
     attr_accessor :datapublic
 
-    # @return [Beeminder::User] User that owns this goal.
-    attr_reader :user
-    
-    def initialize user, name
-      @user = user
-      @slug = name
-      
-      reload
+    def initialize info
+      reload info
     end
 
     # Reload data from Beeminder.
-    def reload
-      info = @user.get "users/#{@user.name}/goals/#{@slug}.json"
+    #
+    # @param info [Hash] Optionally reload with this info instead of getting it from Beeminder.
+    def reload info=nil
+      info ||= @user.get "users/me/goals/#{@slug}.json"
 
       # set variables
       info.each do |k,v|
@@ -81,7 +77,7 @@ module Beeminder
     #
     # @return [Array<Beeminder::Datapoint>] returns list of datapoints
     def datapoints
-      info = @user.get "users/#{@user.name}/goals/#{slug}/datapoints.json"
+      info = @user.get "users/me/goals/#{slug}/datapoints.json"
       datapoints = info.map{|d| Datapoint.new d}
 
       datapoints
@@ -98,7 +94,7 @@ module Beeminder
         "datapublic" => @datapublic || false,
       }
 
-      @user.put "users/#{@user.name}/goals/#{@slug}.json", data
+      @user.put "users/me/goals/#{@slug}.json", data
     end
 
     # Send new road setting to Beeminder.
@@ -109,7 +105,7 @@ module Beeminder
 
       dials["goaldate"] = dials["goaldate"].strftime('%s') unless dials["goaldate"].nil?
 
-      @user.post "users/#{@user.name}/goals/#{@slug}/dial_road.json", dials
+      @user.post "users/me/goals/#{@slug}/dial_road.json", dials
     end
     
     # Add one or more datapoints to the goal.
@@ -124,7 +120,7 @@ module Beeminder
           "sendmail"   => opts[:sendmail] || false
         }.merge(dp.to_hash)
 
-        @user.post "users/#{@user.name}/goals/#{@slug}/datapoints.json", data
+        @user.post "users/me/goals/#{@slug}/datapoints.json", data
       end
     end
 
@@ -134,7 +130,7 @@ module Beeminder
     def delete datapoints
       datapoints = [*datapoints]
       datapoints.each do |dp|
-        @user.delete "/users/#{@user.name}/goals/#{@slug}/datapoints/#{dp.id}.json"
+        @user.delete "/users/me/goals/#{@slug}/datapoints/#{dp.id}.json"
       end
     end
 
@@ -183,6 +179,10 @@ module Beeminder
       # some conversions
       @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s')
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
+    end
+
+    def update
+      # TODO
     end
 
     # Convert datapoint to hash for POSTing.

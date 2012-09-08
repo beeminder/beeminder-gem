@@ -14,12 +14,12 @@ module Beeminder
     # @return [String] Timezone.
     attr_reader :timezone
     
-    def initialize name, token
-      @name  = name
+    def initialize token
       @token = token
 
-      info = get "users/#{@name}.json"
-      
+      info = get "users/me.json"
+
+      @name       = info["username"]
       @timezone   = info["timezone"]
       @updated_at = DateTime.strptime(info["updated_at"].to_s, '%s')
     end
@@ -31,10 +31,10 @@ module Beeminder
     def goals filter=:all
       raise "invalid goal filter: #{filter}" unless [:all, :frontburner, :backburner].include? filter
 
-      info = get "users/#{@name}.json", :filter => filter.to_s
-      goals = info["goals"].map do |goal|
-        Beeminder::Goal.new self, goal
-      end unless info["goals"].nil?
+      goals = get("users/#{@name}/goals.json", :filter => filter.to_s) || []
+      goals.map! do |info|
+        Beeminder::Goal.new info
+      end
 
       goals || []
     end
@@ -44,7 +44,8 @@ module Beeminder
     # @param name [String] Name of the goal.
     # @return [Beeminder::Goal] Returns goal.
     def goal name
-      Beeminder::Goal.new self, name
+      info = @user.get "users/me/goals/#{@slug}.json"
+      Beeminder::Goal.new info
     end
 
     # Convenience function to add datapoint to a goal.
