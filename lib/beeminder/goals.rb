@@ -171,7 +171,7 @@ module Beeminder
 
     def initialize info={}
       default = {
-        timestamp: DateTime.now.strftime('%s')
+        "timestamp" => DateTime.now.strftime('%s')
       }
       info = default.merge(info)
       
