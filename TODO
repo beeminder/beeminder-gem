@@ -4,3 +4,4 @@
 - [X] beemind binary
 - [X] implement actual API calls
 - [ ] add a few more sanity checks
+- [ ] don't load goal info twice (wtf was I thinking?)
