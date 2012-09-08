@@ -54,7 +54,7 @@ module Beeminder
     # @param comment [String] Optional comment.
     def send name, value, comment=""
       goal = self.goal name
-      dp = Beeminder::Datapoint.new value: value, comment: comment
+      dp = Beeminder::Datapoint.new :value => value, :comment => comment
       goal.add dp
     end
     
@@ -108,7 +108,8 @@ module Beeminder
       http = Net::HTTP.new(url.host, url.port)
       http.read_timeout = 8640
       http.use_ssl = true
-
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE # FIXME: actually verify
+      
       json = ""
       http.start do |http|
         req = case type
