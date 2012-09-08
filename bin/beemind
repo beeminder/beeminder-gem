@@ -35,7 +35,7 @@ if not File.exists? opts[:config]
     "account" => ask("Beeminder account:"),
     "token"   => ask("Auth token:")
   }
-  File.open(opts[:config], "w+") {|f| YAML.dump yaml, f}
+  File.open(opts[:config], "w+") {|f| YAML.dump auth, f}
   File.chmod 0600, opts[:config]
   puts "Written config to '#{opts[:config]}.'"
 end
