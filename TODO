@@ -1,6 +1,6 @@
 * TODO [3/5]
 - [X] document code
-- [ ] handle oauth tokens?
+- [ ] use token to identify user, remove name argument
 - [X] beemind binary
 - [X] implement actual API calls
 - [ ] add a few more sanity checks
