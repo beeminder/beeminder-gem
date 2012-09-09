@@ -198,10 +198,6 @@ module Beeminder
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
     end
 
-    def update
-      # TODO
-    end
-
     # Convert datapoint to hash for POSTing.
     # @return [Hash]
     def to_hash
