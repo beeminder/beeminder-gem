@@ -22,39 +22,40 @@ opts = Trollop::options do
 
   opt :config,    "Path to config.", :type => :string, :default => "~/.beeminderrc"
   opt :list,      "List all available goals."
-  opt :token,     "Auth token. (Optional. If not given, reads config or asks for it.)", :type => :string
-  opt :no_config, "Don't write token to config file. (Implied with --token.)"
+  opt :token,     "Use this auth token instead of config. (Optional. Will ask for it if none given.)", :type => :string
 end
 
 Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
 goal, value, comment = ARGV unless opts[:list]
 
 opts[:config] = File.expand_path opts[:config]
-opts[:no_config] = true if opts[:token]
 
-if File.exists? opts[:config]
-  # read config to fill in the gaps
-  auth = YAML.load File.open(opts[:config]) || {}
-  opts[:token] ||= auth["token"]
-end
+if not opts[:token]
+  # read config
+  if File.exists? opts[:config]
+    # read config to fill in the gaps
+    auth = YAML.load File.open(opts[:config]) || {}
+    opts[:token] ||= auth["token"]
+  end
 
-# ask for missing data
-if opts[:token].nil?
-  opts[:token] = ask("Auth token:")
-  # TODO
-end
+  # still empty? ask!
+  if opts[:token].nil?
+    opts[:token] = ask("Auth token:")
 
-unless opts[:no_config]
-  auth = {
-    "token" => opts[:token]
-  }
-  File.open(opts[:config], "w+") {|f| YAML.dump auth, f}
-  File.chmod 0600, opts[:config]
-  puts "Written config to '#{opts[:config]}.'"
+    # save config for later
+    auth = {
+      "token" => opts[:token]
+    }
+    File.open(opts[:config], "w+") {|f| YAML.dump auth, f}
+    File.chmod 0600, opts[:config]
+    puts "Written config to '#{opts[:config]}.'"
+  end
 end
 
 # login
 bee = Beeminder::User.new opts[:token]
+
+p bee
 
 if opts[:list]
   # list all available goals

@@ -13,10 +13,28 @@ module Beeminder
 
     # @return [String] Timezone.
     attr_reader :timezone
-    
-    def initialize token
-      @token = token
 
+    # @return [Symbol] Type of user, can be `:personal` (default) or `:oauth`.
+    attr_reader :auth_type
+    
+    def initialize token, opts={}
+      opts = {
+        :auth_type => :personal,
+      }.merge(opts)
+      
+      @token     = token
+      @auth_type = opts[:auth_type]
+
+      @token_type =
+        case @auth_type
+        when :personal
+          "auth_token"
+        when :oauth
+          "access_token"
+        else
+          raise ArgumentError, "Auth type not supported, must be :personal or :oauth."
+        end
+      
       info = get "users/me.json"
 
       @name       = info["username"]
@@ -103,7 +121,7 @@ module Beeminder
     # Establish HTTPS connection to API.
     def _connection type, cmd, data
       api  = "https://www.beeminder.com/api/v1/#{cmd}"
-      data = {"auth_token" => @token}.merge(data)
+      data = {@token_type => @token}.merge(data)
       
       url = URI.parse(api)
       http = Net::HTTP.new(url.host, url.port)
