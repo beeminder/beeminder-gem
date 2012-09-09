@@ -20,9 +20,9 @@ usage = "usage: beemind goal value [comment]"
 opts = Trollop::options do
   banner usage
 
-  opt :config,    "Path to config.", :type => :string, :default => "~/.beeminderrc"
-  opt :list,      "List all available goals."
-  opt :token,     "Use this auth token instead of config. (Optional. Will ask for it if none given.)", :type => :string
+  opt :config, "Path to config.", :type => :string, :default => "~/.beeminderrc"
+  opt :list,   "List all available goals."
+  opt :token,  "Use this auth token instead of config. (Optional. Will ask for it if none given.)", :type => :string
 end
 
 Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
