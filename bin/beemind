@@ -24,7 +24,6 @@ opts = Trollop::options do
   opt :list,      "List all available goals."
   opt :user,      "Beeminder account. (Optional. If not given, reads config or asks for it.)", :type => :string
   opt :token,     "Auth token. (Optional. If not given, reads config or asks for it.)",        :type => :string
-  opt :no_config, "Don't write name / token to config file. (Implied with --user or --token.)"
 end
 
 Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
@@ -41,10 +40,10 @@ if File.exists? opts[:config]
 end
 
 # ask for missing data
-opts[:user]  ||= ask("Beeminder account:")
-opts[:token] ||= ask("Auth token:")
+if opts[:user].nil? or opts[:token].nil?
+  opts[:user]  ||= ask("Beeminder account:")
+  opts[:token] ||= ask("Auth token:")
 
-unless opts[:no_config]
   auth = {
     "user"  => opts[:user],
     "token" => opts[:token]
