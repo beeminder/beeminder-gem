@@ -166,18 +166,17 @@ module Beeminder
     attr_reader :updated_at
 
     def initialize info={}
-      default = {
-        "timestamp" => DateTime.now.strftime('%s')
-      }
-      info = default.merge(info)
-      
       # set variables
       info.each do |k,v|
         instance_variable_set "@#{k}", v
       end
 
+      # defaults
+      @timestamp ||= DateTime.now
+      @comment   ||= ""
+
       # some conversions
-      @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s')
+      @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s') unless @timestamp.is_a? Date
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
     end
 
