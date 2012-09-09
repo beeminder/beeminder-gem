@@ -146,7 +146,7 @@ module Beeminder
         
         res = http.request(req)
         if not res.is_a? Net::HTTPSuccess
-          raise "request #{cmd} / #{data} failed: #{res.code} / #{res.body}"
+          raise "request failed: #{res.code} / #{res.body}"
         end
 
         json = res.body
