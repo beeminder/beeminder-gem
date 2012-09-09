@@ -51,26 +51,29 @@ module Beeminder
     # @return [true|false] Whether you have to be signed in as the owner of the goal to view the datapoints.
     attr_accessor :datapublic
 
-    def initialize info
-      reload info
+    # @return [Beeminder::User] User that owns this goal.
+    attr_reader :user
+    
+    def initialize user, name_or_info
+      @user = user
+
+      info =
+        case name
+        when String
+          @user.get "users/me/goals/#{name_or_info}.json"
+        when Hash
+          name_or_info
+        else
+          raise ArgumentError, "`name_or_info` must be String (slug) or Hash (preloaded info)"
+        end
+      
+      _parse_info info
     end
 
     # Reload data from Beeminder.
-    #
-    # @param info [Hash] Optionally reload with this info instead of getting it from Beeminder.
-    def reload info=nil
-      info ||= @user.get "users/me/goals/#{@slug}.json"
-
-      # set variables
-      info.each do |k,v|
-        instance_variable_set "@#{k}", v
-      end
-
-      # some conversions
-      @goaldate   = DateTime.strptime(@goaldate.to_s,   '%s') unless @goaldate.nil?
-      @goal_type  = @goal_type.to_sym unless @goal_type.nil?
-      @losedate   = DateTime.strptime(@losedate.to_s,   '%s') unless @losedate.nil?
-      @updated_at = DateTime.strptime(@updated_at.to_s, '%s')
+    def reload
+      info = @user.get "users/me/goals/#{@slug}.json"
+      parse_info info
     end
 
     # List of datapoints.
@@ -146,6 +149,21 @@ module Beeminder
         "secret"     => @secret || false,
         "datapublic" => @datapublic || false,
       }
+    end
+
+    private
+
+    def _parse_info info
+      # set variables
+      info.each do |k,v|
+        instance_variable_set "@#{k}", v
+      end
+
+      # some conversions
+      @goaldate   = DateTime.strptime(@goaldate.to_s,   '%s') unless @goaldate.nil?
+      @goal_type  = @goal_type.to_sym unless @goal_type.nil?
+      @losedate   = DateTime.strptime(@losedate.to_s,   '%s') unless @losedate.nil?
+      @updated_at = DateTime.strptime(@updated_at.to_s, '%s')
     end
   end
 

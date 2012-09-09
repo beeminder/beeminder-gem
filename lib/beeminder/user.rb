@@ -51,7 +51,7 @@ module Beeminder
 
       goals = get("users/#{@name}/goals.json", :filter => filter.to_s) || []
       goals.map! do |info|
-        Beeminder::Goal.new info
+        Beeminder::Goal.new self, info
       end
 
       goals || []
@@ -62,8 +62,7 @@ module Beeminder
     # @param name [String] Name of the goal.
     # @return [Beeminder::Goal] Returns goal.
     def goal name
-      info = @user.get "users/me/goals/#{@slug}.json"
-      Beeminder::Goal.new info
+      Beeminder::Goal.new self, name
     end
 
     # Convenience function to add datapoint to a goal.
