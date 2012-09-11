@@ -55,8 +55,6 @@ end
 # login
 bee = Beeminder::User.new opts[:token]
 
-p bee
-
 if opts[:list]
   # list all available goals
   puts "available goals:"

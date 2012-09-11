@@ -58,7 +58,7 @@ module Beeminder
       @user = user
 
       info =
-        case name
+        case name_or_info
         when String
           @user.get "users/me/goals/#{name_or_info}.json"
         when Hash
