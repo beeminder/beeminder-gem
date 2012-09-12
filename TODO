@@ -1,5 +1,4 @@
-* TODO [0/4]
-- [ ] use token to identify user, remove name argument
+* TODO [0/3]
 - [ ] add a few more sanity checks
 - [ ] cache goals / datapoints
 - [ ] add update function to Datapoint
