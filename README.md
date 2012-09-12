@@ -20,7 +20,11 @@ Or install it yourself as:
 
 First, get your token [here](https://www.beeminder.com/api/v1/auth_token.json) and log in:
 
-    bee = Beeminder::User.new "username", "token"
+    # normal login
+    bee = Beeminder::User.new "token"
+
+    # oauth
+    bee = Beeminder::User.new "token", :auth_type => :oauth
 
 Now you can do a bunch of stuff. You'll probably want to send a new datapoint:
 
