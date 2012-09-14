@@ -64,7 +64,7 @@ if opts[:list]
     puts "  #{goal.slug} (#{goal.title})"
   end
 else
-  date = Chronic.parse(opts[:date])
+  date = Chronic.parse(opts[:date], :context => :past)
   Trollop::die "invalid date" if date.nil?
 
   g = bee.goal goal
