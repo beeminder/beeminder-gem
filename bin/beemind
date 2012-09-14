@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
+require 'chronic'
 require 'highline/import'
 require 'trollop'
 require 'yaml'
@@ -23,6 +24,7 @@ opts = Trollop::options do
   opt :config, "Path to config.", :type => :string, :default => "~/.beeminderrc"
   opt :list,   "List all available goals."
   opt :token,  "Use this auth token instead of config. (Optional. Will ask for it if none given.)", :type => :string
+  opt :date,   "Set a manual date. Uses Chronic syntax.", :type => :string, :default => "now"
 end
 
 Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
@@ -62,5 +64,10 @@ if opts[:list]
     puts "  #{goal.slug} (#{goal.title})"
   end
 else
-  bee.send goal, value, comment || ""
+  date = Chronic.parse(opts[:date])
+  Trollop::die "invalid date" if date.nil?
+
+  g = bee.goal goal
+  dp = Beeminder::Datapoint.new :timestamp => date, :value => value, :comment => (comment || "")
+  g.add dp
 end

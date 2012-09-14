@@ -194,7 +194,7 @@ module Beeminder
       @comment   ||= ""
 
       # some conversions
-      @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s') unless @timestamp.is_a? Date
+      @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s') unless @timestamp.is_a?(Date) || @timestamp.is_a?(Time)
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
     end
 
