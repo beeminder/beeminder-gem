@@ -127,6 +127,13 @@ module Beeminder
       http.read_timeout = 8640
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE # FIXME: actually verify
+
+      # FIXME Sanity check for wrong timestamp. Source of bug unknown, so we prevent screwing up someone's graph.
+      unless data["timestamp"].nil?
+        if not data["timestamp"].match(/^\d+$/) or data["timestamp"] < "1280000000"
+          raise ArgumentError, "invalid timestamp: #{data["timestamp"]}"
+        end
+      end
       
       json = ""
       http.start do |http|

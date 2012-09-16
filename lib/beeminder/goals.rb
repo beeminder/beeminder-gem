@@ -120,7 +120,7 @@ module Beeminder
       # FIXME create_all doesn't work because Ruby's POST encoding of arrays is broken.
       datapoints.each do |dp|
         data = {
-          "sendmail"   => opts[:sendmail] || false
+          "sendmail" => opts[:sendmail] || false
         }.merge(dp.to_hash)
 
         @user.post "users/me/goals/#{@slug}/datapoints.json", data
