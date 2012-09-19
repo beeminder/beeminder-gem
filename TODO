@@ -1,4 +1,5 @@
-* TODO [0/3]
+* TODO [0/4]
 - [ ] add a few more sanity checks
 - [ ] cache goals / datapoints
 - [ ] add update function to Datapoint
+- [ ] constructors could be more elegant, but don't wanna break compatibility again, so it can wait until the next major rewrite

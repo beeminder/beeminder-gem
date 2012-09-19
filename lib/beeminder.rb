@@ -1,5 +1,6 @@
 # coding: utf-8
 
+require 'active_support/core_ext'
 require 'date'
 require 'json'
 require 'net/https'

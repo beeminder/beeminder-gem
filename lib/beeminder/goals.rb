@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- encoding: utf-8 -*-
 
 module Beeminder
   class Goal
@@ -81,7 +81,13 @@ module Beeminder
     # @return [Array<Beeminder::Datapoint>] returns list of datapoints
     def datapoints
       info = @user.get "users/me/goals/#{slug}/datapoints.json"
-      datapoints = info.map{|d| Datapoint.new d}
+      datapoints = info.map do |d_info|
+        d_info = {
+          :goal => self,
+        }.merge(d_info)
+
+        Datapoint.new d_info
+      end
 
       datapoints
     end
@@ -106,8 +112,12 @@ module Beeminder
     def dial_road dials={}
       raise "Set exactly two dials." if dials.keys.size != 2
 
-      dials["goaldate"] = dials["goaldate"].strftime('%s') unless dials["goaldate"].nil?
-
+      # convert to proper timestamp
+      unless dials["goaldate"].nil?
+        dials["goaldate"] = @user.convert_to_timezone dials["goaldate"] if @user.enforce_timezone?
+        dials["goaldate"] = dials["goaldate"].strftime('%s')
+      end
+        
       @user.post "users/me/goals/#{@slug}/dial_road.json", dials
     end
     
@@ -117,12 +127,15 @@ module Beeminder
     def add datapoints, opts={}
       datapoints = [*datapoints]
 
-      # FIXME create_all doesn't work because Ruby's POST encoding of arrays is broken.
       datapoints.each do |dp|
+        # we grab these datapoints for ourselves
+        dp.goal = self
+        
         data = {
           "sendmail" => opts[:sendmail] || false
         }.merge(dp.to_hash)
 
+        # TODO create_all doesn't work because Ruby's POST encoding of arrays is broken.
         @user.post "users/me/goals/#{@slug}/datapoints.json", data
       end
     end
@@ -160,10 +173,10 @@ module Beeminder
       end
 
       # some conversions
-      @goaldate   = DateTime.strptime(@goaldate.to_s,   '%s') unless @goaldate.nil?
+      @goaldate   = DateTime.strptime(@goaldate.to_s,   '%s').in_time_zone(@user.timezone) unless @goaldate.nil?
       @goal_type  = @goal_type.to_sym unless @goal_type.nil?
-      @losedate   = DateTime.strptime(@losedate.to_s,   '%s') unless @losedate.nil?
-      @updated_at = DateTime.strptime(@updated_at.to_s, '%s')
+      @losedate   = DateTime.strptime(@losedate.to_s,   '%s').in_time_zone(@user.timezone) unless @losedate.nil?
+      @updated_at = DateTime.strptime(@updated_at.to_s, '%s').in_time_zone(@user.timezone)
     end
   end
 
@@ -183,6 +196,10 @@ module Beeminder
     # @return [DateTime] The time that this datapoint was entered or last updated.
     attr_reader :updated_at
 
+    # @return [Beeminder::Goal] Goal this datapoint belongs to.
+    #   Optional for new datapoints. Use `Goal#add` to add new datapoints to a goal.
+    attr_accessor :goal
+    
     def initialize info={}
       # set variables
       info.each do |k,v|
@@ -196,11 +213,21 @@ module Beeminder
       # some conversions
       @timestamp  = DateTime.strptime(@timestamp.to_s,  '%s') unless @timestamp.is_a?(Date) || @timestamp.is_a?(Time)
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s') unless @updated_at.nil?
+
+      # set timezone if possible
+      unless @goal.nil?
+        @timestamp  = @timestamp.in_time_zone  @goal.user.timezone
+        @updated_at = @updated_at.in_time_zone @goal.user.timezone
+      end
     end
 
     # Convert datapoint to hash for POSTing.
     # @return [Hash]
     def to_hash
+      if not @goal.nil? and @goal.user.enforce_timezone?
+        @timestamp = @goal.user.convert_to_timezone @timestamp
+      end
+      
       {
         "timestamp" => @timestamp.strftime('%s'),
         "value"     => @value || 0,

@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- encoding: utf-8 -*-
 
 module Beeminder
   class User
@@ -16,14 +16,19 @@ module Beeminder
 
     # @return [Symbol] Type of user, can be `:personal` (default) or `:oauth`.
     attr_reader :auth_type
+
+    # @return [true|false] Enforce user timezone for all passed times? Should be true unless you know what you're doing. (Default: `true`.)
+    attr_accessor :enforce_timezone
     
     def initialize token, opts={}
       opts = {
         :auth_type => :personal,
+        :enforce_timezone => true,
       }.merge(opts)
       
-      @token     = token
-      @auth_type = opts[:auth_type]
+      @token            = token
+      @auth_type        = opts[:auth_type]
+      @enforce_timezone = opts[:enforce_timezone]
 
       @token_type =
         case @auth_type
@@ -38,14 +43,21 @@ module Beeminder
       info = get "users/me.json"
 
       @name       = info["username"]
-      @timezone   = info["timezone"]
-      @updated_at = DateTime.strptime(info["updated_at"].to_s, '%s')
+      @timezone   = info["timezone"] || "UTC"
+      @updated_at = DateTime.strptime(info["updated_at"].to_s, '%s').in_time_zone(@timezone)
     end
 
+    # Enforce timezone for all passed times? 
+    #
+    # @return [true|false]
+    def enforce_timezone?
+      !!@enforce_timezone
+    end
+    
     # List of goals.
     #
     # @param filter [Symbol] filter goals, can be `:all` (default), `:frontburner` or `:backburner`
-    # @ return [Array<Beeminder::Goal>] returns list of goals
+    # @return [Array<Beeminder::Goal>] returns list of goals
     def goals filter=:all
       raise "invalid goal filter: #{filter}" unless [:all, :frontburner, :backburner].include? filter
 
@@ -115,8 +127,25 @@ module Beeminder
       _connection :put, cmd, data
     end
 
-    private
+    # Converts time object to one with user's timezone.
+    #
+    # @param time [Date|DateTime|Time] Time to convert.
+    # @return [Time] Converted time.
+    def convert_to_timezone time
+      # TODO seems way too hack-ish
+      old_tz = Time.zone
+      Time.zone = @timezone
+      
+      time = time.to_time
+      t = Time.new(time.year, time.month, time.day, time.hour, time.min, time.sec)
 
+      Time.zone = old_tz
+
+      t
+    end
+
+    private
+    
     # Establish HTTPS connection to API.
     def _connection type, cmd, data
       api  = "https://www.beeminder.com/api/v1/#{cmd}"
@@ -128,7 +157,7 @@ module Beeminder
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE # FIXME: actually verify
 
-      # FIXME Sanity check for wrong timestamp. Source of bug unknown, so we prevent screwing up someone's graph.
+      # FIXME Sanity check for wrong timestamp. Source of bug unknown, but at least we can prevent screwing up someone's graph.
       unless data["timestamp"].nil?
         if not data["timestamp"].match(/^\d+$/) or data["timestamp"] < "1280000000"
           raise ArgumentError, "invalid timestamp: #{data["timestamp"]}"
