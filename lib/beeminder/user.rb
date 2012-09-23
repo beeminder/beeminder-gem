@@ -132,16 +132,12 @@ module Beeminder
     # @param time [Date|DateTime|Time] Time to convert.
     # @return [Time] Converted time.
     def convert_to_timezone time
-      # TODO seems way too hack-ish
-      old_tz = Time.zone
-      Time.zone = @timezone
+      Time.use_zone(@timezone){
       
-      time = time.to_time
-      t = Time.new(time.year, time.month, time.day, time.hour, time.min, time.sec)
-
-      Time.zone = old_tz
-
-      t
+      time = time.to_time unless time.is_a?(Time)
+      Time.local(time.year, time.month, time.day, time.hour, time.min, time.sec)
+      
+      }
     end
 
     private

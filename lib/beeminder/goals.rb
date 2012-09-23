@@ -150,7 +150,7 @@ module Beeminder
       end
     end
 
-    # Convert datapoint to hash for POSTing.
+    # Convert goal to hash for POSTing.
     # @return [Hash]
     def to_hash
       {

@@ -68,6 +68,8 @@ else
   Trollop::die "invalid date" if date.nil?
 
   g = bee.goal goal
-  dp = Beeminder::Datapoint.new :timestamp => date, :value => value, :comment => (comment || "")
+  dp = Beeminder::Datapoint.new :timestamp => date, 
+                                :value => value, 
+                                :comment => (comment || "")
   g.add dp
 end
