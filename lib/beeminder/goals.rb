@@ -17,6 +17,12 @@ module Beeminder
     # @return [Numeric] Goal value.
     attr_reader :goalval
 
+    # @return [Numeric] Value of the most recent data point.
+    attr_reader :curval
+
+    # @return [DateTime] Date of the most recent data point.
+    attr_reader :curday
+    
     # @return [Numeric] The slope of the (final section of the) yellow brick road.
     attr_reader :rate
 
@@ -177,6 +183,7 @@ module Beeminder
       @goal_type  = @goal_type.to_sym unless @goal_type.nil?
       @losedate   = DateTime.strptime(@losedate.to_s,   '%s').in_time_zone(@user.timezone) unless @losedate.nil?
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s').in_time_zone(@user.timezone)
+      @curdate    = DateTime.strptime(@curdate.to_s,    '%s').in_time_zone(@user.timezone) unless @curdate.nil?
     end
   end
 
