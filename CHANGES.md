@@ -1,5 +1,9 @@
 # Major Changes
 
+## 0.2.6 (2013-05-17)
+
+- Support for curgoal and curdate for Beeminder::Goal for easy access to the current state of the goal.
+
 ## 0.2.1 (2012/09/14)
 
 - Added --date argument to CLI tool.
