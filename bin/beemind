@@ -42,7 +42,8 @@ if not opts[:token]
 
   # still empty? ask!
   if opts[:token].nil?
-    opts[:token] = ask("Auth token:")
+    # explicitly convert to String to work around HighLine bug
+    opts[:token] = ask("Auth token:").to_s
 
     # save config for later
     auth = {
