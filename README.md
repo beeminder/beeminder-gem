@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install beeminder-gem
+    $ gem install beeminder
 
 ## Usage
 
