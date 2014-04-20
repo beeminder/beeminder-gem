@@ -167,9 +167,9 @@ module Beeminder
                 Net::HTTP::Post.new(url.path)
                 req.set_form_data(data)
               when :get
-                Net::HTTP::Get.new(url.path + "?" + URI.encode_www_form(data))
+                Net::HTTP::Get.new(url.path + "?" + data.to_query)
               when :delete
-                Net::HTTP::Delete.new(url.path + "?" + URI.encode_www_form(data))
+                Net::HTTP::Delete.new(url.path + "?" + data.to_query)
               when :put
                 Net::HTTP::Put.new(url.path)
                 req.set_form_data(data)
