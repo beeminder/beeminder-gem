@@ -165,16 +165,17 @@ module Beeminder
         req = case type
               when :post
                 Net::HTTP::Post.new(url.path)
+                req.set_form_data(data)
               when :get
-                Net::HTTP::Get.new(url.path)
+                Net::HTTP::Get.new(url.path + "?" + URI.encode_www_form(data))
               when :delete
-                Net::HTTP::Delete.new(url.path)
+                Net::HTTP::Delete.new(url.path + "?" + URI.encode_www_form(data))
               when :put
                 Net::HTTP::Put.new(url.path)
+                req.set_form_data(data)
               else
                 raise "invalid connection type"
               end
-        req.set_form_data(data)
         
         res = http.request(req)
         if not res.is_a? Net::HTTPSuccess
