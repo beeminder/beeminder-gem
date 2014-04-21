@@ -162,21 +162,21 @@ module Beeminder
       
       json = ""
       http.start do |http|
-        req = case type
-              when :post
-                Net::HTTP::Post.new(url.path)
-                req.set_form_data(data)
-              when :get
-                Net::HTTP::Get.new(url.path + "?" + data.to_query)
-              when :delete
-                Net::HTTP::Delete.new(url.path + "?" + data.to_query)
-              when :put
-                Net::HTTP::Put.new(url.path)
-                req.set_form_data(data)
-              else
-                raise "invalid connection type"
-              end
-        
+        case type
+        when :post
+          req = Net::HTTP::Post.new(url.path)
+          req.set_form_data(data)
+        when :get
+          req = Net::HTTP::Get.new(url.path + "?" + data.to_query)
+        when :delete
+          req = Net::HTTP::Delete.new(url.path + "?" + data.to_query)
+        when :put
+          req = Net::HTTP::Put.new(url.path)
+          req.set_form_data(data)
+        else
+          raise "invalid connection type"
+        end
+
         res = http.request(req)
         if not res.is_a? Net::HTTPSuccess
           raise "request failed: #{res.code} / #{res.body}"
