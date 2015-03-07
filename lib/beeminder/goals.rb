@@ -59,6 +59,9 @@ module Beeminder
 
     # @return [Beeminder::User] User that owns this goal.
     attr_reader :user
+
+    # @return [true|false] Whether the goal is currently frozen and therefore must be restarted before continuing to accept data.
+    attr_reader :frozen
     
     def initialize user, name_or_info
       @user = user
