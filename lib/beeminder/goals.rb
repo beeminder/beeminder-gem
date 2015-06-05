@@ -59,6 +59,9 @@ module Beeminder
 
     # @return [Beeminder::User] User that owns this goal.
     attr_reader :user
+
+    # @return [Array<Integer, Float, Float>] All road settings over time
+    attr_accessor :roadall
     
     def initialize user, name_or_info
       @user = user
@@ -79,7 +82,7 @@ module Beeminder
     # Reload data from Beeminder.
     def reload
       info = @user.get "users/me/goals/#{@slug}.json"
-      parse_info info
+      _parse_info info
     end
 
     # List of datapoints.
@@ -108,8 +111,9 @@ module Beeminder
         "secret"     => @secret || false,
         "datapublic" => @datapublic || false,
       }
+      data['roadall'] = @roadall if @roadall
 
-      @user.put "users/me/goals/#{@slug}.json", data
+      @user.put_document "users/me/goals/#{@slug}.json", data
     end
 
     # Send new road setting to Beeminder.
@@ -125,6 +129,20 @@ module Beeminder
       end
         
       @user.post "users/me/goals/#{@slug}/dial_road.json", dials
+    end
+
+    # Schedule a break.
+    # Adds two new entries to `roadall` reflecting the break.
+    # Use #update to actually update the goal.
+    #
+    # @param start_time [Time] when to start the break -- must be after the akrasia horizon
+    # @param end_time [Time] when to end the break
+    # @param rate [Float] the slope of the road during the break
+    def schedule_break start_time, end_time, rate = 0.0
+      check_break start_time, end_time
+
+      roadall.insert(-2, [start_time.to_i, nil, roadall.last.last])
+      roadall.insert(-2, [end_time.to_i, nil, rate])
     end
     
     # Add one or more datapoints to the goal.
@@ -172,6 +190,14 @@ module Beeminder
 
     private
 
+    def check_break start_time, end_time
+      akrasia_horizon = user.akrasia_horizon
+      fail ArgumentError, "break start can't be before the akrasia horizon (#{akrasia_horizon})" \
+          if start_time < akrasia_horizon
+      fail ArgumentError, 'break must start before it ends' \
+          unless end_time > start_time
+    end
+
     def _parse_info info
       # set variables
       info.each do |k,v|
@@ -184,6 +210,9 @@ module Beeminder
       @losedate   = DateTime.strptime(@losedate.to_s,   '%s').in_time_zone(@user.timezone) unless @losedate.nil?
       @updated_at = DateTime.strptime(@updated_at.to_s, '%s').in_time_zone(@user.timezone)
       @curdate    = DateTime.strptime(@curdate.to_s,    '%s').in_time_zone(@user.timezone) unless @curdate.nil?
+
+      # reported data is sometimes malformed like this
+      roadall.last[0] = nil if !roadall.nil? && roadall.last[0] == 0
     end
   end
 

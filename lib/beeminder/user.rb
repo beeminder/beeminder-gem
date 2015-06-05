@@ -127,6 +127,14 @@ module Beeminder
       _connection :put, cmd, data
     end
 
+    # Send PUT request with a JSON document to API.
+    #
+    # @param cmd [String] the API command, like `users/#{user.name}.json`
+    # @param data [Hash] data to send
+    def put_document cmd, data = {}
+      _connection :put_json, cmd, data
+    end
+
     # Converts time object to one with user's timezone.
     #
     # @param time [Date|DateTime|Time] Time to convert.
@@ -138,6 +146,15 @@ module Beeminder
       Time.local(time.year, time.month, time.day, time.hour, time.min, time.sec)
       
       }
+    end
+
+    # Returns the current akrasia horizon.
+    #
+    # @return [Time] The first instant changes can be made for.
+    def akrasia_horizon
+      Time.use_zone(@timezone) do
+        -8.days.ago.beginning_of_day
+      end
     end
 
     private
@@ -173,6 +190,10 @@ module Beeminder
         when :put
           req = Net::HTTP::Put.new(url.path)
           req.set_form_data(data)
+        when :put_json
+          req = Net::HTTP::Put.new(url.path)
+          req.body = data.to_json
+          req.content_type = 'application/json'
         else
           raise "invalid connection type"
         end
