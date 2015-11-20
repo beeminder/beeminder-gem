@@ -62,6 +62,9 @@ module Beeminder
 
     # @return [Array<Integer, Float, Float>] All road settings over time
     attr_accessor :roadall
+
+    # @return [true|false] Whether the goal is currently frozen and therefore must be restarted before continuing to accept data.
+    attr_reader :frozen
     
     def initialize user, name_or_info
       @user = user
