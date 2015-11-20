@@ -65,6 +65,10 @@ module Beeminder
 
     # @return [true|false] Whether the goal is currently frozen and therefore must be restarted before continuing to accept data.
     attr_reader :frozen
+
+    # @return [Numeric] Where you are with respect to the yellow brick road (2 or more = above the road, 1 = top lane, -1 = bottom lane, -2 or less = below the road).
+    attr_reader :lane
+
     
     def initialize user, name_or_info
       @user = user
