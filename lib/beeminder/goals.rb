@@ -69,6 +69,8 @@ module Beeminder
     # @return [Numeric] Where you are with respect to the yellow brick road (2 or more = above the road, 1 = top lane, -1 = bottom lane, -2 or less = below the road).
     attr_reader :lane
 
+    # @return [Numeric] Good side of the road. I.e., the side of the road (+1/-1 = above/below) that makes you say “yay”.
+    attr_reader :yaw
     
     def initialize user, name_or_info
       @user = user
