@@ -20,6 +20,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'chronic', '~> 0.7'
   gem.add_dependency 'json'
   gem.add_dependency 'highline', '~> 1.6'
-  gem.add_dependency 'trollop', '~> 2'
+  gem.add_dependency 'optimist', '~> 3'
   gem.add_dependency 'tzinfo'
 end
