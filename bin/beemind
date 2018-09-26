@@ -3,7 +3,7 @@
 
 require 'chronic'
 require 'highline/import'
-require 'trollop'
+require 'optimist'
 require 'yaml'
 
 # load library
@@ -18,7 +18,7 @@ else
 end
 
 usage = "usage: beemind goal value [comment]"
-opts = Trollop::options do
+opts = Optimist::options do
   banner usage
 
   opt :config, "Path to config.", :type => :string, :default => "~/.beeminderrc"
@@ -27,7 +27,7 @@ opts = Trollop::options do
   opt :date,   "Set a manual date. Uses Chronic syntax.", :type => :string, :default => "now"
 end
 
-Trollop::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
+Optimist::die usage if not (2..3).include?(ARGV.size) and not opts[:list]
 goal, value, comment = ARGV unless opts[:list]
 
 opts[:config] = File.expand_path opts[:config]
@@ -66,7 +66,7 @@ if opts[:list]
   end
 else
   date = Chronic.parse(opts[:date], :context => :past)
-  Trollop::die "invalid date" if date.nil?
+  Optimist::die "invalid date" if date.nil?
 
   g = bee.goal goal
   dp = Beeminder::Datapoint.new :timestamp => date, 
