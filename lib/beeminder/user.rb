@@ -168,7 +168,7 @@ module Beeminder
       http = Net::HTTP.new(url.host, url.port)
       http.read_timeout = 8640
       http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER # was VERIFY_NONE for some reason
 
       # FIXME Sanity check for wrong timestamp. Source of bug unknown, but at least we can prevent screwing up someone's graph.
       unless data["timestamp"].nil?
