@@ -8,8 +8,14 @@ module Beeminder
     # @return [DateTime] Last time this goal was updated.
     attr_reader :updated_at
 
-    # @return [String] The title that the user specified for the goal. 
+    # @return [String] The title that the user specified for the goal.
     attr_accessor :title
+
+    #
+    attr_accessor :fineprint
+
+    #
+    attr_accessor :yaxis
 
     # @return [DateTime] Goal date.
     attr_reader :goaldate
@@ -17,14 +23,17 @@ module Beeminder
     # @return [Numeric] Goal value.
     attr_reader :goalval
 
-    # @return [Numeric] Value of the most recent data point.
-    attr_reader :curval
-
-    # @return [DateTime] Date of the most recent data point.
-    attr_reader :curday
-    
     # @return [Numeric] The slope of the (final section of the) yellow brick road.
     attr_reader :rate
+
+    # @return [String] URL for the goal's graph image.
+    attr_reader :graph_url
+
+    #
+    attr_reader :thumb_url
+
+    #
+    attr_reader :autodata
 
     # @return [Symbol] One of the following symbols:
     #   - `:fatloser`: Weight loss
@@ -39,17 +48,11 @@ module Beeminder
     # @return [DateTime] Date of derailment.
     attr_reader :losedate
 
-    # @return [String] URL for the goal's graph image.
-    attr_reader :graph_url
-
     # @return [Numeric] Panic threshold. How long before derailment to panic.
     attr_accessor :panic
 
     # @return [true|false] Whether the graph is currently being updated to reflect new data.
     attr_reader :queued
-
-    # @return [true|false] Whether the graph was created in test mode.
-    attr_accessor :ephem
 
     # @return [true|false] Whether you have to be signed in as owner of the goal to view it.
     attr_accessor :secret
@@ -60,18 +63,142 @@ module Beeminder
     # @return [Beeminder::User] User that owns this goal.
     attr_reader :user
 
-    # @return [Array<Integer, Float, Float>] All road settings over time
-    attr_accessor :roadall
+    #
+    attr_reader :numpts
 
-    # @return [true|false] Whether the goal is currently frozen and therefore must be restarted before continuing to accept data.
-    attr_reader :frozen
+    #
+    attr_reader :pledge
+
+    #
+    attr_reader :initday
+
+    #
+    attr_reader :initval
+
+    # @return [DateTime] Date of the most recent data point.
+    attr_reader :curday
+
+    # @return [Numeric] Value of the most recent data point.
+    attr_reader :curval
+
+    attr_reader :lastday
+
+    attr_reader :runits
+
+    # @return [Numeric] Good side of the road. I.e., the side of the road (+1/-1 = above/below) that makes you say “yay”.
+    attr_reader :yaw
+
+    #
+    attr_reader :dir
 
     # @return [Numeric] Where you are with respect to the yellow brick road (2 or more = above the road, 1 = top lane, -1 = bottom lane, -2 or less = below the road).
     attr_reader :lane
 
-    # @return [Numeric] Good side of the road. I.e., the side of the road (+1/-1 = above/below) that makes you say “yay”.
-    attr_reader :yaw
-    
+    #
+    attr_reader :mathishard
+
+    #
+    attr_reader :headsum
+
+    #
+    attr_reader :limsum
+
+    #
+    attr_reader :kyoom
+
+    #
+    attr_reader :odom
+
+    #
+    attr_reader :aggday
+
+    #
+    attr_reader :steppy
+
+    #
+    attr_reader :rosy
+
+    #
+    attr_reader :movingav
+
+    #
+    attr_reader :aura
+
+    #
+    attr_reader :aura
+
+    # @return [true|false] Whether the goal is currently frozen and therefore must be restarted before continuing to accept data.
+    attr_reader :frozen
+
+    #
+    attr_reader :won
+
+    #
+    attr_reader :lost
+
+    #
+    attr_reader :nomercy
+
+    #
+    attr_reader :contract
+
+    #
+    attr_reader :road
+
+    # @return [Array<Integer, Float, Float>] All road settings over time
+    attr_accessor :roadall
+
+    #
+    attr_reader :fullroad
+
+    #
+    attr_reader :rah
+
+    #
+    attr_reader :delta
+
+    #
+    attr_reader :delta_text
+
+    #
+    attr_reader :safebump
+
+    #
+    attr_reader :callback_url
+
+    #
+    attr_reader :description
+
+    #
+    attr_reader :graphsum
+
+    #
+    attr_reader :lanewidth
+
+    #
+    attr_reader :deadline
+
+    #
+    attr_reader :leadtime
+
+    #
+    attr_reader :alertstart
+
+    #
+    attr_reader :plotall
+
+    #
+    attr_reader :last_datapoint
+
+    #
+    attr_reader :integery
+
+    # @return [true|false] Whether the graph was created in test mode.
+    attr_accessor :ephem
+
+    # @return [Beeminder::User] User that owns this goal.
+    attr_reader :user
+
     def initialize user, name_or_info
       @user = user
 
@@ -84,7 +211,7 @@ module Beeminder
         else
           raise ArgumentError, "`name_or_info` must be String (slug) or Hash (preloaded info)"
         end
-      
+
       _parse_info info
     end
 
@@ -136,7 +263,7 @@ module Beeminder
         dials["goaldate"] = @user.convert_to_timezone dials["goaldate"] if @user.enforce_timezone?
         dials["goaldate"] = dials["goaldate"].strftime('%s')
       end
-        
+
       @user.post "users/me/goals/#{@slug}/dial_road.json", dials
     end
 
@@ -153,7 +280,7 @@ module Beeminder
       roadall.insert(-2, [start_time.to_i, nil, roadall.last.last])
       roadall.insert(-2, [end_time.to_i, nil, rate])
     end
-    
+
     # Add one or more datapoints to the goal.
     #
     # @param datapoints [Beeminder::Datapoint, Array<Beeminder::Datapoint>] one or more datapoints to add to goal
@@ -163,7 +290,7 @@ module Beeminder
       datapoints.each do |dp|
         # we grab these datapoints for ourselves
         dp.goal = self
-        
+
         data = {
           "sendmail" => opts[:sendmail] || false
         }.merge(dp.to_hash)
@@ -244,7 +371,7 @@ module Beeminder
     # @return [Beeminder::Goal] Goal this datapoint belongs to.
     #   Optional for new datapoints. Use `Goal#add` to add new datapoints to a goal.
     attr_accessor :goal
-    
+
     def initialize info={}
       # set variables
       info.each do |k,v|
@@ -272,7 +399,7 @@ module Beeminder
       if not @goal.nil? and @goal.user.enforce_timezone?
         @timestamp = @goal.user.convert_to_timezone @timestamp
       end
-      
+
       {
         "timestamp" => @timestamp.strftime('%s'),
         "value"     => @value || 0,
